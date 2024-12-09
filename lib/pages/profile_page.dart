@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:image_picker/image_picker.dart';
-import 'home_page.dart';
+import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,70 +12,54 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   File? _profileImage;
-  // final ImagePicker _picker = ImagePicker();
-
   late Map<String, String> userDetails = {};
+  bool isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserDetails();
+    _checkLoginStatus();
   }
 
-  // Fungsi untuk memuat detail pengguna dari SharedPreferences
-  Future<void> _loadUserDetails() async {
+  Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    final username = prefs.getString('loggedInUsername');
+    if (username != null && username.isNotEmpty) {
+      setState(() {
+        isLoggedIn = true;
+        userDetails = {
+          'username': prefs.getString('loggedInUsername') ?? 'Unknown User',
+          'firstName': prefs.getString('firstName') ?? '-',
+          'lastName': prefs.getString('lastName') ?? '-',
+          'gender': prefs.getString('gender') ?? '-',
+          'phone': prefs.getString('phone') ?? '-',
+          'address': prefs.getString('address') ?? '-',
+        };
+      });
+    }
+  }
+
+  void _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
     setState(() {
-      userDetails = {
-        'username': prefs.getString('loggedInUsername') ?? 'Unknown User',
-        'firstName': prefs.getString('firstName') ?? '-',
-        'lastName': prefs.getString('lastName') ?? '-',
-        'gender': prefs.getString('gender') ?? '-',
-        'phone': prefs.getString('phone') ?? '-',
-        'address': prefs.getString('address') ?? '-',
-      };
+      isLoggedIn = false;
+      userDetails = {};
     });
   }
-
-  // Fungsi untuk memilih gambar profil
-  // Future<void> _pickImage() async {
-  //   final XFile? pickedFile = await _picker.pickImage(
-  //     source: ImageSource.gallery, // Bisa diganti dengan ImageSource.camera
-  //     maxWidth: 400,
-  //     maxHeight: 400,
-  //     imageQuality: 85,
-  //   );
-
-  //   if (pickedFile != null) {
-  //     setState(() {
-  //       _profileImage = File(pickedFile.path);
-  //     });
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()),
-            );
-          },
-        ),
       ),
-      body: userDetails.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
+      body: isLoggedIn
+          ? Padding(
               padding: const EdgeInsets.all(16.0),
               child: ListView(
                 children: [
                   GestureDetector(
-                    // onTap: _pickImage, // Ketika gambar di-tap, pilih gambar
                     child: CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey,
@@ -116,7 +99,27 @@ class _ProfilePageState extends State<ProfilePage> {
                     title: const Text('Alamat'),
                     subtitle: Text(userDetails['address'] ?? '-'),
                   ),
+                  ElevatedButton(
+                    onPressed: _logout,
+                    child: const Text('Logout'),
+                  ),
                 ],
+              ),
+            )
+          : Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage(),
+                    ),
+                  ).then((_) {
+                    // Refresh profile page after login
+                    _checkLoginStatus();
+                  });
+                },
+                child: const Text('Login to your account'),
               ),
             ),
     );

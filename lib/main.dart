@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-// import 'utils/account_initializer.dart';
-import 'pages/login_page.dart';
+import 'pages/home_page.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // await initializeAccounts();
-  runApp(MyApp());
+void main() {
+  runApp(const CouponApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CouponApp extends StatelessWidget {
+  const CouponApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Marvel Movies',
-      theme: ThemeData.dark(),
-      home: const LoginPage(),
+      title: 'Coupon Haven',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomePage(),
     );
   }
 }
